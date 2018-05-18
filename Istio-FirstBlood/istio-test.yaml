@@ -1,0 +1,100 @@
+---
+#============one============
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: one
+    version: v1
+  name: one
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: one
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: one
+        version: v1
+    spec:
+      containers:
+      - image: yubotao/istio-one:test
+        imagePullPolicy: IfNotPresent
+        name: one
+        ports:
+        - containerPort: 8180
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: one
+  labels:
+    app: one
+spec:
+  ports:
+  - name: http
+    port: 8180
+    #nodePort: 30011
+  #type: NodePort
+  selector:
+    app: one
+---
+#=============two===============
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: two
+    version: v1
+  name: two
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: two
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: two
+        version: v1
+    spec:
+      containers:
+      - image: yubotao/istio-two:test
+        imagePullPolicy: IfNotPresent
+        name: one
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: two
+  labels:
+    app: two
+spec:
+  ports:
+  - name: http
+    port: 8080
+  selector:
+    app: two
+---
+#=============ingress============
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-istio-ingress
+  namespace: test-istio
+  annotations:
+     kubernetes.io/ingress.class: "istio"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: one
+          servicePort: 8180
+---
